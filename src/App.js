@@ -1,24 +1,50 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import Navbar from "./components/Navbar";
+import Hero from "./components/Hero";
+import About from "./components/About";
+import Growth from "./components/Growth";
+import Contact from "./components/Contact";
+import Footer from "./components/Footer";
+import EntranceScreen from "./components/EntranceScreen";
+
+import { useEffect } from 'react';
+
+export const useReveal = () => {
+  useEffect(() => {
+    const reveals = document.querySelectorAll('.reveal');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            observer.unobserve(entry.target); // for 1-time animation
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    reveals.forEach((el) => observer.observe(el));
+
+    return () => {
+      reveals.forEach((el) => observer.unobserve(el));
+    };
+  }, []);
+};
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <EntranceScreen/>
+      <Navbar />
+      <Hero />
+      <About/>
+      <Growth/>
+      <Contact/>
+      <Footer/>
+    </>
   );
 }
 
