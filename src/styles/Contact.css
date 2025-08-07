@@ -129,3 +129,101 @@
     transform: translateX(-50%);
   }
 }
+
+@media (max-width: 1024px) {
+  .contact {
+    padding: 5rem 2rem;
+  }
+
+  .contact-text h2 {
+    font-size: 2.4rem;
+  }
+
+  .contact-text p {
+    font-size: 1rem;
+  }
+
+  .send-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact {
+    padding: 4rem 1.5rem;
+    flex-direction: column;
+  }
+
+  .contact-wrapper {
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  .contact-text h2 {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .contact-text p {
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .contact-form {
+    width: 100%;
+  }
+
+  .send-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact {
+    padding: 3rem 1rem;
+  }
+
+  .contact-text h2 {
+    font-size: 1.6rem;
+  }
+
+  .contact-text p {
+    font-size: 0.9rem;
+  }
+
+  .form-group input,
+  .form-group textarea {
+    font-size: 0.95rem;
+    padding: 0.9rem;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .send-btn {
+    font-size: 0.95rem;
+  }
+}
+
+.error-text {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  margin-top: -1rem;
+  font-size: 0.95rem;
+}
+
+.success-toast {
+  background: linear-gradient(135deg, #00aeef, #a44de4);
+  padding: 1rem 1.5rem;
+  color: white;
+  border-radius: 12px;
+  font-size: 1rem;
+  margin-top: 1.5rem;
+  box-shadow: 0 0 20px rgba(0, 174, 239, 0.4);
+  text-align: center;
+  z-index: 100;
+}
+

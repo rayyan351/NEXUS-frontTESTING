@@ -34,7 +34,7 @@ const fadeUp = {
 
 const GrowthFramework = () => {
   return (
-    <section className="growth-section">
+    <section className="growth-section" id="approach">
       <img src={GrowthGraph} alt="Growth Graph" className="growth-svg-bg" />
 
       <motion.div

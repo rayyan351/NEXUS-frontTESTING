@@ -1,14 +1,16 @@
+// src/components/About.jsx
 import React, { useRef } from 'react';
 import '../styles/About.css';
 import { useReveal } from '../hooks/useReveal';
 import Globe from './Globe';
+
 
 const About = () => {
   const aboutRef = useRef(null);
   useReveal();
 
   return (
-    <section className="about-section" ref={aboutRef}>
+    <section className="about-section" ref={aboutRef} id="profit-framework">
       <div className="about-bg-blobs">
         <div className="blob blob1"></div>
         <div className="blob blob2"></div>
@@ -33,9 +35,11 @@ const About = () => {
         </div>
 
         <div className="about-right reveal">
+          <div className="globe-container">
             <Globe />
           </div>
         </div>
+      </div>
     </section>
   );
 };

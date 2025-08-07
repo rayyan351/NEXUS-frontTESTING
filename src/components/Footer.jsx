@@ -7,13 +7,8 @@ const Footer = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 200) {
-        setShowButton(true);
-      } else {
-        setShowButton(false);
-      }
+      setShowButton(window.scrollY > 200);
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -27,12 +22,17 @@ const Footer = () => {
       <div className="footer-pattern" />
 
       <div className="footer-content">
-        <h2 className="footer-logo">Nexus Tech Infinity</h2>
+        {/* Logo Image */}
+        <img
+          src={require('../assets/logo-nexus 2.png')}
+          alt="Nexus Infinity Tech"
+          className="footer-logo-img"
+        />
 
         <ul className="footer-links">
-          <li><a href="#home">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#services">Services</a></li>
+          <li><a href="#AGENCY">Agency</a></li>
+          <li><a href="#profit-framework">Profit Path</a></li>
+          <li><a href="#approach">Approach</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
 
@@ -43,7 +43,7 @@ const Footer = () => {
           <a href="a"><FaLinkedinIn /></a>
         </div>
 
-        <p className="footer-copy">© 2025 Nexus Tech Infinity. All rights reserved.</p>
+        <p className="footer-copy">© 2025 Nexus Infinity Tech. All rights reserved.</p>
       </div>
 
       {showButton && (

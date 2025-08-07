@@ -50,7 +50,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="hero">
+    <section className="hero" id="AGENCY">
       <div className="hero-lights">
         {[...Array(7)].map((_, i) => (
           <span className="light-column" style={{ left: `${i * 14.2}%` }} key={i}></span>
@@ -58,10 +58,12 @@ const Hero = () => {
       </div>
 
       <div className="hero-content">
-<h1 className="hero-heading">
-  <span className="gradient-text">Growth Driven Marketing</span><br />
-  <span>for <span className="gradient-text">Ingenious Brands</span></span>
+   <h1 className="hero-heading">
+  <span className="gradient-text">Growth Driven</span><br />
+  <span className="gradient-text">Marketing</span><br />
+  <span className="gradient-text">For Ingenious Brands</span>
 </h1>
+
 
 
         <p className="hero-tagline">
@@ -78,6 +80,7 @@ const Hero = () => {
             <span className="chat-dot">•</span>
           </span>
         </button>
+        
       </div>
 
       <div className="hero-lottie-wrapper">

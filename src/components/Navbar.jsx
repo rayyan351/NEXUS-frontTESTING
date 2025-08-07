@@ -6,26 +6,45 @@ import { FaBars, FaTimes } from "react-icons/fa";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const navItems = ["AGENCY", "APPROACH", "WORK", "THOUGHTS", "LAB"];
+  // Format: nav text + section id
+  const navItems = [
+    { label: "AGENCY", target: "AGENCY" },
+    { label: "PROFIT PATH", target: "profit-framework" },
+    { label: "APPROACH", target: "approach" },
+    { label: "CONTACT", target: "contact" },
+  ];
+
+  const handleNavClick = (target) => {
+    const section = document.getElementById(target);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+      setIsOpen(false); // close menu on mobile
+    }
+  };
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <h1 className="navbar-brand">NEXUS INFINITY TECH</h1>
+       <img
+       src={require("../assets/logo-nexus 2.png")}
+       alt="Nexus Infinity Tech Logo"
+       className="navbar-logo"
+       />
 
         <div className="hamburger-icon" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <FaTimes /> : <FaBars />}
         </div>
 
+        {/* Desktop menu */}
         <div className="navbar-menu-wrapper desktop-only">
           <ul className="navbar-menu">
             {navItems.map((item, i) => (
-              <li key={i}>
+              <li key={i} onClick={() => handleNavClick(item.target)}>
                 <div className="nav-item-wrapper">
                   <div className="nav-dot"></div>
                   <div className="text-stack">
-                    <span className="text light">{item}</span>
-                    <span className="text bold">{item}</span>
+                    <span className="text light">{item.label}</span>
+                    <span className="text bold">{item.label}</span>
                   </div>
                 </div>
               </li>
@@ -34,6 +53,7 @@ const Navbar = () => {
         </div>
       </div>
 
+      {/* Mobile menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -49,9 +69,9 @@ const Navbar = () => {
                   <motion.span
                     whileHover={{ scale: 1.1, color: "#00aeef" }}
                     transition={{ type: "spring", stiffness: 300 }}
+                    onClick={() => handleNavClick(item.target)}
                   >
-                    {item}
-                    <motion.div className="underline" layoutId="underline" />
+                    {item.label}
                   </motion.span>
                 </li>
               ))}

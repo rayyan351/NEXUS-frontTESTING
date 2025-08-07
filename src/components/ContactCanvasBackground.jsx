@@ -59,16 +59,18 @@ const ContactCanvasBackground = () => {
   return (
     <canvas
       ref={canvasRef}
-      style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        zIndex: 0,
-        width: '100%',
-        height: '100%',
-        opacity: 0.2,
-        pointerEvents: 'none',
-      }}
+     style={{
+  position: 'absolute',
+  bottom: 0,
+  left: 0,
+  zIndex: 0,
+  width: '100%',
+  height: '100%',
+  maxHeight: '100vh', // prevent excess overflow
+  opacity: 0.2,
+  pointerEvents: 'none',
+}}
+
     />
   );
 };
