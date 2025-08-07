@@ -11,6 +11,48 @@ import '../styles/Admin.css';
 
 Modal.setAppElement('#root');
 
+/* ========= Pending Delete Queue (localStorage) ========= */
+const PENDING_KEY = 'pending_deletes';
+
+const getPendingDeletes = () => {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+const addPendingDelete = (id) => {
+  const items = getPendingDeletes();
+  if (!items.find(x => x.id === id)) {
+    items.push({ id, queuedAt: Date.now() });
+    localStorage.setItem(PENDING_KEY, JSON.stringify(items));
+  }
+};
+const removePendingDelete = (id) => {
+  const items = getPendingDeletes().filter(x => x.id !== id);
+  localStorage.setItem(PENDING_KEY, JSON.stringify(items));
+};
+const flushPendingDeletes = async (token) => {
+  const items = getPendingDeletes();
+  if (!items.length || !token) return;
+  for (const { id } of items) {
+    try {
+      await axios.delete(`https://nexus-backend-1-qjsa.onrender.com/api/admin/submissions/${id}`, {
+        headers: { 'x-auth-token': token }
+      });
+      removePendingDelete(id);
+    } catch (e) {
+      // If already deleted, consider it flushed
+      if (e?.response?.status === 404) {
+        removePendingDelete(id);
+      }
+      // else keep it for next retry
+    }
+  }
+};
+/* ======================================================= */
+
 const Dashboard = () => {
   const { admin, logout } = useContext(AdminAuthContext);
   const [submissions, setSubmissions] = useState([]);
@@ -32,7 +74,6 @@ const Dashboard = () => {
   const [selectedMessage, setSelectedMessage] = useState('');
   const [undoTimer, setUndoTimer] = useState(5);
 
-
   const [showCalendar, setShowCalendar] = useState(false);
   const [dateRange, setDateRange] = useState([
     {
@@ -42,55 +83,65 @@ const Dashboard = () => {
     }
   ]);
 
-const handleDeleteConfirmed = async (id) => {
-  setFadeCard(id); // trigger fade animation
+  /* Flush queued deletes on mount, on focus, and when back online */
+  useEffect(() => {
+    if (!admin?.token) return;
+    flushPendingDeletes(admin.token);
+    const onFocus = () => flushPendingDeletes(admin.token);
+    const onOnline = () => flushPendingDeletes(admin.token);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('online', onOnline);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('online', onOnline);
+    };
+  }, [admin?.token]);
 
-  setTimeout(() => {
-    const target = submissions.find((item) => item._id === id);
-    setDeletedBackup(target);
-    setSubmissions((prev) => prev.filter((item) => item._id !== id));
-    setFiltered((prev) => prev.filter((item) => item._id !== id));
-    setShowConfirm(null);
-    setToastMessage('Submission deleted');
-    setShowToast(true);
+  const handleDeleteConfirmed = (id) => {
+    setFadeCard(id); // trigger fade animation
 
-    setUndoTimer(5); // reset timer
-setShowToast(true);
+    setTimeout(() => {
+      const target = submissions.find((item) => item._id === id);
+      setDeletedBackup(target);
+      setSubmissions((prev) => prev.filter((item) => item._id !== id));
+      setFiltered((prev) => prev.filter((item) => item._id !== id));
+      setShowConfirm(null);
+      setToastMessage('Submission deleted');
+      setShowToast(true);
 
-let counter = 5;
-const interval = setInterval(() => {
-  counter -= 1;
-  setUndoTimer(counter);
-  if (counter === 0) clearInterval(interval);
-}, 1000);
+      // Reset and start the countdown visible in the toast
+      setUndoTimer(5);
+      let counter = 5;
+      const interval = setInterval(() => {
+        counter -= 1;
+        setUndoTimer(counter);
+        if (counter === 0) clearInterval(interval);
+      }, 1000);
 
+      // Queue the delete immediately so it survives logout/refresh
+      addPendingDelete(id);
 
-    // Auto delete from DB after 5s if not undone
-    setTimeout(async () => {
-      if (deletedBackup && deletedBackup._id === id) {
-        try {
-          await axios.delete(`https://nexus-backend-1-qjsa.onrender.com/api/admin/submissions/${id}`, {
-            headers: {
-              'x-auth-token': admin.token
-            }
-          });
+      // After 5s, if not undone, try flushing once; if it fails, it stays queued
+      setTimeout(async () => {
+        if (deletedBackup && deletedBackup._id === id) {
+          if (admin?.token) {
+            await flushPendingDeletes(admin.token);
+          }
           setDeletedBackup(null);
-        } catch (err) {
-          console.error('Delete failed', err);
         }
-      }
-    }, 5000);
-  }, 300); // allow fade animation
-};
+      }, 5000);
+    }, 300); // allow fade animation
+  };
 
-const handleUndoDelete = () => {
-  if (deletedBackup) {
-    setSubmissions((prev) => [deletedBackup, ...prev]);
-    setFiltered((prev) => [deletedBackup, ...prev]);
-    setDeletedBackup(null);
-    setToastMessage('Deletion undone');
-  }
-};
+  const handleUndoDelete = () => {
+    if (deletedBackup) {
+      setSubmissions((prev) => [deletedBackup, ...prev]);
+      setFiltered((prev) => [deletedBackup, ...prev]);
+      removePendingDelete(deletedBackup._id); // ensure it won't be flushed later
+      setDeletedBackup(null);
+      setToastMessage('Deletion undone');
+    }
+  };
 
   useEffect(() => {
     const fetchSubs = async () => {
@@ -128,8 +179,10 @@ const handleUndoDelete = () => {
     setFiltered(filteredData);
   }, [search, submissions, dateRange, showCalendar]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setLoggingOut(true);
+    // ensure any queued deletes are sent before logging out
+    await flushPendingDeletes(admin?.token);
     setTimeout(() => {
       logout();
     }, 1500);
@@ -151,26 +204,25 @@ const handleUndoDelete = () => {
       </div>
 
       <div className="stats-panel">
-  <div className="stat-box">
-    <h4>Total Submissions</h4>
-    <p>{submissions.length}</p>
-  </div>
-  <div className="stat-box">
-    <h4>Filtered Results</h4>
-    <p>{filtered.length}</p>
-  </div>
-  <div className="stat-box">
-    <h4>Latest Submission</h4>
-    <p>
-      {submissions.length > 0
-        ? new Date(
-            Math.max(...submissions.map((item) => new Date(item.createdAt)))
-          ).toLocaleDateString()
-        : 'N/A'}
-    </p>
-  </div>
-</div>
-
+        <div className="stat-box">
+          <h4>Total Submissions</h4>
+          <p>{submissions.length}</p>
+        </div>
+        <div className="stat-box">
+          <h4>Filtered Results</h4>
+          <p>{filtered.length}</p>
+        </div>
+        <div className="stat-box">
+          <h4>Latest Submission</h4>
+          <p>
+            {submissions.length > 0
+              ? new Date(
+                  Math.max(...submissions.map((item) => new Date(item.createdAt)))
+                ).toLocaleDateString()
+              : 'N/A'}
+          </p>
+        </div>
+      </div>
 
       <div className="search-bar">
         <input
@@ -239,33 +291,31 @@ const handleUndoDelete = () => {
                 </span>
               </p>
               <p className="date"><strong>Date:</strong> {new Date(item.createdAt).toLocaleDateString()}</p>
-             
-             {showConfirm === item._id ? (
-            <div className="confirm-delete">
-         <p>Are you sure?</p>
-         <button onClick={() => handleDeleteConfirmed(item._id)}>Yes</button>
-        <button onClick={() => setShowConfirm(null)}>No</button>
-      </div>
-       ) : (
-    <button className="delete-btn" onClick={() => setShowConfirm(item._id)}>
-      Delete
-    </button>
-  )}
+              
+              {showConfirm === item._id ? (
+                <div className="confirm-delete">
+                  <p>Are you sure?</p>
+                  <button onClick={() => handleDeleteConfirmed(item._id)}>Yes</button>
+                  <button onClick={() => setShowConfirm(null)}>No</button>
+                </div>
+              ) : (
+                <button className="delete-btn" onClick={() => setShowConfirm(item._id)}>
+                  Delete
+                </button>
+              )}
             </div>
           ))}
         </div>
       )}
 
       {showToast && (
-  <div className="toast">
-    <span>{toastMessage}</span>
-    {toastMessage === 'Submission deleted' && deletedBackup && (
-      <button onClick={handleUndoDelete}>Undo ({undoTimer}s)</button>
-
-    )}
-  </div>
-)}
-
+        <div className="toast">
+          <span>{toastMessage}</span>
+          {toastMessage === 'Submission deleted' && deletedBackup && (
+            <button onClick={handleUndoDelete}>Undo ({undoTimer}s)</button>
+          )}
+        </div>
+      )}
 
       {/* Full Message Modal */}
       <Modal
