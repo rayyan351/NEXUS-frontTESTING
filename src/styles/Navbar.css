@@ -193,6 +193,21 @@
   transform: translateX(6px);
 }
 
+/* Active state (desktop) */
+.navbar-menu li.active .text.light {
+  color: #fff;
+}
+
+.navbar-menu li.active .nav-dot {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* slide-in effect for the dot */
+.nav-dot {
+  transform: translateX(-6px);
+  transition: opacity 0.3s ease, transform 0.35s ease;
+}
 
 
 

@@ -1,12 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/Navbar.css";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaBars, FaTimes } from "react-icons/fa";
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  // Format: nav text + section id
   const navItems = [
     { label: "AGENCY", target: "AGENCY" },
     { label: "PROFIT PATH", target: "profit-framework" },
@@ -14,22 +10,44 @@ const Navbar = () => {
     { label: "CONTACT", target: "contact" },
   ];
 
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+
   const handleNavClick = (target) => {
     const section = document.getElementById(target);
     if (section) {
       section.scrollIntoView({ behavior: "smooth" });
-      setIsOpen(false); // close menu on mobile
+      setIsOpen(false);
+      setActiveSection(target);
     }
   };
+
+  useEffect(() => {
+    const onScroll = () => {
+      let current = "";
+      navItems.forEach((item) => {
+        const el = document.getElementById(item.target);
+        if (!el) return;
+        const top = el.offsetTop - 140; // navbar offset
+        const bottom = top + el.offsetHeight;
+        if (window.scrollY >= top && window.scrollY < bottom) current = item.target;
+      });
+      setActiveSection(current);
+    };
+    window.addEventListener("scroll", onScroll);
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <nav className="navbar">
       <div className="navbar-container">
-       <img
-       src={require("../assets/logo-nexus 2.png")}
-       alt="Nexus Infinity Tech Logo"
-       className="navbar-logo"
-       />
+        <img
+          src={require("../assets/logo-nexus 2.png")}
+          alt="Nexus Infinity Tech Logo"
+          className="navbar-logo"
+        />
 
         <div className="hamburger-icon" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <FaTimes /> : <FaBars />}
@@ -39,7 +57,11 @@ const Navbar = () => {
         <div className="navbar-menu-wrapper desktop-only">
           <ul className="navbar-menu">
             {navItems.map((item, i) => (
-              <li key={i} onClick={() => handleNavClick(item.target)}>
+              <li
+                key={i}
+                onClick={() => handleNavClick(item.target)}
+                className={activeSection === item.target ? "active" : ""}
+              >
                 <div className="nav-item-wrapper">
                   <div className="nav-dot"></div>
                   <div className="text-stack">
