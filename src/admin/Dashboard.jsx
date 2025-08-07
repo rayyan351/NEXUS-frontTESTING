@@ -95,7 +95,7 @@ const handleUndoDelete = () => {
   useEffect(() => {
     const fetchSubs = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/admin/submissions', {
+        const res = await axios.get('https://nexus-backend-1-qjsa.onrender.com/api/admin/submissions', {
           headers: {
             'x-auth-token': admin.token
           }
