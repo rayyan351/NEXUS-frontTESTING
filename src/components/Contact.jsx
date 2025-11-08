@@ -50,7 +50,7 @@ const Contact = () => {
     setSubmitted(false);
 
     try {
-      await axios.post('https://nexus-backend-1-qjsa.onrender.com/api/contact', formData);
+      await axios.post('https://nexus-backtesting.onrender.com/api/contact', formData);
       setSubmitted(true);
       setFormData({ name: '', email: '', social: '', message: '' });
 
